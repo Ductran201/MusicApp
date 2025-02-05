@@ -1,101 +1,398 @@
+"use client";
+
 import Image from "next/image";
+import {
+  FaPlay,
+  FaForwardFast,
+  FaBackwardFast,
+  FaShuffle,
+  FaRepeat,
+  FaVolumeHigh,
+  FaEllipsis,
+  FaPause,
+  FaVolumeXmark,
+} from "react-icons/fa6";
+import React, { useState, useEffect, useRef } from "react";
 
-export default function Home() {
+const MusicPlayer = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isRandom, setIsRandom] = useState(false);
+  const [isRepeat, setIsRepeat] = useState(false);
+  const [processMusic, setProcessMusic] = useState(0);
+  const [volume, setVolume] = useState(50);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVolume, setIsVolume] = useState(false);
+  const [isSeeking, setIsSeeking] = useState(false);
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const cdRef = useRef<HTMLDivElement | null>(null);
+  const songListRef = useRef<HTMLDivElement | null>(null);
+
+  const songs = [
+    {
+      name: "Âm thầm bên em",
+      singer: "Sơn Tùng M-TP",
+      path: "/audio/amThamBenEm.mp3",
+      img: "/img/AmThamBenEm.jpg",
+    },
+    {
+      name: "Say sóng",
+      singer: "Tăng Nhật Tuệ",
+      path: "/audio/saySong.mp3",
+      img: "/img/100Love.jpg",
+    },
+    {
+      name: "Vẫn nhớ",
+      singer: "Tuấn Hưng",
+      path: "/audio/vanNho.mp3",
+      img: "/img/anhsems.jpg",
+    },
+    {
+      name: "Say sóng",
+      singer: "Tăng Nhật Tuệ",
+      path: "/audio/saySong.mp3",
+      img: "/img/PayPhone.jpg",
+    },
+    {
+      name: "Mất kết nối",
+      singer: "Duong Domic",
+      path: "/audio/matKetNoi.mp3",
+      img: "/img/TNOAL.jpg",
+    },
+    {
+      name: "Dắt anh về nhà",
+      singer: "Thoại Nghi",
+      path: "/audio/datAnhVeNha.mp3",
+      img: "/img/cuoithoi.jpg",
+    },
+    {
+      name: "Chỉ muốn bên em lúc này",
+      singer: "Thoại Nghi",
+      path: "/audio/chiMuonBenEmLucNay.mp3",
+      img: "/img/MuonRoiMaSaoCon.jpg",
+    },
+  ];
+
+  const currentSong = songs[currentIndex];
+
+  const loadCurrentSong = () => {
+    if (audioRef.current) {
+      audioRef.current.src = currentSong.path;
+      if (isPlaying) audioRef.current.play();
+    }
+  };
+
+  const handlePlayPause = () => {
+    if (isPlaying) {
+      audioRef.current?.pause();
+    } else {
+      audioRef.current?.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const playRandomSong = () => {
+    let newIndex;
+    do {
+      newIndex = Math.floor(Math.random() * songs.length);
+    } while (newIndex === currentIndex);
+
+    setCurrentIndex(newIndex);
+  };
+
+  const handleNextSong = () => {
+    if (isRandom) {
+      playRandomSong();
+    } else {
+      let newIndex = currentIndex + 1;
+      if (newIndex >= songs.length) {
+        newIndex = 0;
+      }
+      setCurrentIndex(newIndex);
+    }
+  };
+
+  const handlePrevSong = () => {
+    let newIndex = currentIndex - 1;
+    if (newIndex < 0) {
+      newIndex = songs.length - 1;
+    }
+    setCurrentIndex(newIndex);
+  };
+
+  const handleRandom = () => {
+    setIsRandom(!isRandom);
+  };
+
+  const handleRepeat = () => {
+    setIsRepeat(!isRepeat);
+  };
+
+  const handleVolumeChange = (e: any) => {
+    const newVolume = e.target.value;
+    setVolume(newVolume);
+
+    if (newVolume === "0") {
+      setIsMuted(true);
+    } else {
+      setIsMuted(false);
+    }
+
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume / 100;
+    }
+  };
+
+  const handleMute = (e: any) => {
+    if (e.target.closest("input[type='range']")) return;
+    if (isMuted) {
+      setVolume(50);
+      setIsMuted(false);
+      if (audioRef.current) {
+        audioRef.current.volume = 50 / 100;
+      }
+    } else {
+      setVolume(0);
+      setIsMuted(true);
+      if (audioRef.current) {
+        audioRef.current.volume = 0;
+      }
+    }
+  };
+
+  useEffect(() => {
+    loadCurrentSong();
+  }, [currentIndex]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+
+    if (!audio) return;
+
+    const updateTime = () => {
+      if (!isSeeking) {
+        setProcessMusic(audio.currentTime);
+      }
+    };
+
+    audio.addEventListener("timeupdate", updateTime);
+
+    return () => {
+      audio.removeEventListener("timeupdate", updateTime);
+    };
+  }, [isSeeking, currentIndex]);
+
+  // Khi bắt đầu kéo (tạm dừng cập nhật tự động)
+  const handleSeekStart = () => {
+    setIsSeeking(true);
+  };
+
+  // Khi kéo thanh trượt
+  const handleSeekTemp = (e: any) => {
+    setProcessMusic(parseFloat(e.target.value));
+  };
+
+  // Khi nhả chuột, cập nhật thời gian thực
+  const handleSeekFinal = () => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.currentTime = processMusic;
+    }
+    setIsSeeking(false); // Cho phép cập nhật tự động từ `timeupdate`
+  };
+
+  useEffect(() => {
+    if (audioRef.current) {
+      const handleSongEnd = () => {
+        if (isRandom) {
+          playRandomSong();
+        } else if (isRepeat) {
+          audioRef.current?.play();
+        } else {
+          handleNextSong();
+        }
+      };
+
+      audioRef.current.addEventListener("ended", handleSongEnd);
+
+      return () => {
+        audioRef.current?.removeEventListener("ended", handleSongEnd);
+      };
+    }
+  }, [currentIndex, isRandom, isRepeat]);
+
+  useEffect(() => {
+    // Cuộn đến bài hát active khi currentIndex thay đổi
+    if (songListRef.current) {
+      const songElement = songListRef.current.children[
+        currentIndex
+      ] as HTMLElement;
+      songElement?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [currentIndex]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!cdRef.current) return;
+
+      const cdWidth = 190;
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+      const newCDWidth = cdWidth - scrollTop;
+
+      cdRef.current.style.width = `${newCDWidth}px`;
+
+      cdRef.current.style.opacity = (newCDWidth / cdWidth).toString();
+
+      // setScrollY(scrollTop);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // console.log(volume);
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="relative">
+      <div className="relative w-[414] mx-auto">
+        <div className="fixed w-[414] bg-slate-100 z-50">
+          <div className="p-3">
+            <div className="text-center">
+              {/* -- Header -- */}
+              <div className=" text-[12] text-red-500 font-semibold pb-1">
+                Now Playing
+              </div>
+              <div className=" font-bold text-[24]">{currentSong.name}</div>
+              {/* -- CD -- */}
+              <div
+                ref={cdRef}
+                className={`w-[190] py-3 mx-auto animate-spin [animation-duration:10s] `}
+                style={{
+                  animationPlayState: isPlaying ? "running" : "paused",
+                }}
+              >
+                <Image
+                  src={currentSong.img}
+                  width={190}
+                  height={190}
+                  alt=""
+                  className="rounded-full"
+                />
+              </div>
+            </div>
+            {/* -- Control -- */}
+            <div className="relative flex justify-between mx-[60]">
+              <div
+                className="flex justify-center items-center px-[14] cursor-pointer"
+                onClick={handleRepeat}
+              >
+                <FaRepeat className={isRepeat ? "text-red-500" : ""} />
+              </div>
+              <div
+                className="flex justify-center items-center px-[14] cursor-pointer"
+                onClick={handlePrevSong}
+              >
+                <FaBackwardFast />
+              </div>
+              <div
+                className="w-[44] h-[44] text-white bg-red-500 rounded-full flex justify-center items-center cursor-pointer"
+                onClick={handlePlayPause}
+              >
+                {isPlaying ? <FaPause /> : <FaPlay />}
+              </div>
+              <div
+                className="flex justify-center items-center px-[14] cursor-pointer"
+                onClick={handleNextSong}
+              >
+                <FaForwardFast />
+              </div>
+              <div
+                className="flex justify-center items-center px-[14] cursor-pointer"
+                onClick={handleRandom}
+              >
+                <FaShuffle className={isRandom ? "text-red-500" : ""} />
+              </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+              <div
+                className="absolute top-[2] left-[-42] p-3 cursor-pointer"
+                onClick={handleMute}
+                onMouseEnter={() => setIsVolume(true)}
+                onMouseLeave={() => setIsVolume(false)}
+              >
+                {isMuted || volume === 0 ? <FaVolumeXmark /> : <FaVolumeHigh />}
+
+                {isVolume && (
+                  <div className="volume-btn absolute py-3 bottom-[80] left-[-44] -rotate-90">
+                    <input
+                      min="0"
+                      max="100"
+                      step="1"
+                      value={volume}
+                      type="range"
+                      onChange={handleVolumeChange}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            {/* -- Volume -- */}
+
+            <div className="text-center pt-4 ">
+              <input
+                className="w-[50%]"
+                type="range"
+                min="0"
+                max={audioRef.current?.duration || 100}
+                value={processMusic}
+                step="1"
+                onMouseDown={handleSeekStart}
+                onChange={handleSeekTemp}
+                onMouseUp={handleSeekFinal}
+              />
+            </div>
+
+            <audio ref={audioRef}></audio>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+
+        <div
+          className="absolute top-[368] w-[414] bg-[#b3a6a657]"
+          ref={songListRef}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          {songs.map((song, index) => (
+            <div
+              key={index}
+              className={`song-item flex items-center bg-slate-100 m-3 rounded-xl cursor-pointer   duration-300 hover:shadow-xl  ${
+                index === currentIndex ? "text-white !bg-red-500" : ""
+              }`}
+              onClick={() => setCurrentIndex(index)}
+            >
+              <div className="p-3">
+                <img
+                  width="190px"
+                  height="190px"
+                  className="w-[50] h-[50] rounded-full"
+                  src={song.img}
+                  alt={song.name}
+                />
+              </div>
+              <div className="ml-[15]">
+                <div className="song-title">{song.name}</div>
+                <div className="mt-1 text-[12]">{song.singer}</div>
+              </div>
+              <div className="absolute right-[16] p-4 cursor-pointer">
+                <FaEllipsis />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default MusicPlayer;
