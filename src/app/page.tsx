@@ -258,19 +258,19 @@ const MusicPlayer = () => {
   // console.log(volume);
   return (
     <div className="relative">
-      <div className="relative w-[414] mx-auto">
-        <div className="fixed w-[414] bg-slate-100 z-50">
+      <div className="relative w-[414px] mx-auto">
+        <div className="fixed w-[414px] bg-slate-100 z-50">
           <div className="p-3">
             <div className="text-center">
               {/* -- Header -- */}
-              <div className=" text-[12] text-red-500 font-semibold pb-1">
+              <div className=" text-[12px] text-red-500 font-semibold pb-1">
                 Now Playing
               </div>
-              <div className=" font-bold text-[24]">{currentSong.name}</div>
+              <div className=" font-bold text-[24px]">{currentSong.name}</div>
               {/* -- CD -- */}
               <div
                 ref={cdRef}
-                className={`w-[190] py-3 mx-auto animate-spin [animation-duration:10s] `}
+                className={`w-[190px] py-3 mx-auto animate-spin [animation-duration:10s] `}
                 style={{
                   animationPlayState: isPlaying ? "running" : "paused",
                 }}
@@ -285,40 +285,40 @@ const MusicPlayer = () => {
               </div>
             </div>
             {/* -- Control -- */}
-            <div className="relative flex justify-between mx-[60]">
+            <div className="relative flex justify-between mx-[60px]">
               <div
-                className="flex justify-center items-center px-[14] cursor-pointer"
+                className="flex justify-center items-center px-[14px] cursor-pointer"
                 onClick={handleRepeat}
               >
                 <FaRepeat className={isRepeat ? "text-red-500" : ""} />
               </div>
               <div
-                className="flex justify-center items-center px-[14] cursor-pointer"
+                className="flex justify-center items-center px-[14px] cursor-pointer"
                 onClick={handlePrevSong}
               >
                 <FaBackwardFast />
               </div>
               <div
-                className="w-[44] h-[44] text-white bg-red-500 rounded-full flex justify-center items-center cursor-pointer"
+                className="w-[44px] h-[44px] text-white bg-red-500 rounded-full flex justify-center items-center cursor-pointer"
                 onClick={handlePlayPause}
               >
                 {isPlaying ? <FaPause /> : <FaPlay />}
               </div>
               <div
-                className="flex justify-center items-center px-[14] cursor-pointer"
+                className="flex justify-center items-center px-[14px] cursor-pointer"
                 onClick={handleNextSong}
               >
                 <FaForwardFast />
               </div>
               <div
-                className="flex justify-center items-center px-[14] cursor-pointer"
+                className="flex justify-center items-center px-[14px] cursor-pointer"
                 onClick={handleRandom}
               >
                 <FaShuffle className={isRandom ? "text-red-500" : ""} />
               </div>
 
               <div
-                className="absolute top-[2] left-[-42] p-3 cursor-pointer"
+                className="absolute top-[2px] left-[-42px] p-3 cursor-pointer"
                 onClick={handleMute}
                 onMouseEnter={() => setIsVolume(true)}
                 onMouseLeave={() => setIsVolume(false)}
@@ -326,7 +326,7 @@ const MusicPlayer = () => {
                 {isMuted || volume === 0 ? <FaVolumeXmark /> : <FaVolumeHigh />}
 
                 {isVolume && (
-                  <div className="volume-btn absolute py-3 bottom-[80] left-[-44] -rotate-90">
+                  <div className="volume-btn absolute py-3 bottom-[80px] left-[-44px] -rotate-90">
                     <input
                       min="0"
                       max="100"
@@ -360,7 +360,7 @@ const MusicPlayer = () => {
         </div>
 
         <div
-          className="absolute top-[368] w-[414] bg-[#b3a6a657]"
+          className="absolute top-[368px] w-[414px] bg-[#b3a6a657]"
           ref={songListRef}
         >
           {songs.map((song, index) => (
@@ -375,16 +375,16 @@ const MusicPlayer = () => {
                 <img
                   width="190px"
                   height="190px"
-                  className="w-[50] h-[50] rounded-full"
+                  className="w-[50px] h-[50px] rounded-full"
                   src={song.img}
                   alt={song.name}
                 />
               </div>
-              <div className="ml-[15]">
+              <div className="ml-[15px]">
                 <div className="song-title">{song.name}</div>
-                <div className="mt-1 text-[12]">{song.singer}</div>
+                <div className="mt-1 text-[12px]">{song.singer}</div>
               </div>
-              <div className="absolute right-[16] p-4 cursor-pointer">
+              <div className="absolute right-[16px] p-4 cursor-pointer">
                 <FaEllipsis />
               </div>
             </div>
